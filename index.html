@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video</title>
+  <style>
+    body { margin:0; display:grid; place-items:center; min-height:100vh; background:#000; }
+    #wrap { width:min(960px, 95vw); }
+    video { width:100%; height:auto; background:#000; }
+    #overlay {
+      position:relative;
+      margin-top:-56.25%;
+      height:56.25%;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+    }
+    button {
+      pointer-events:auto;
+      font-size:18px;
+      padding:14px 22px;
+      border:0;
+      border-radius:10px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <video id="v"
+      playsinline
+      preload="auto"
+      controlslist="nodownload noplaybackrate noremoteplayback"
+      disablepictureinpicture
+      oncontextmenu="return false;">
+      <source src="video.mp4" type="video/mp4">
+      Dein Browser unterstützt das Video nicht.
+    </video>
+
+    <div id="overlay">
+      <button id="startBtn">▶ Start</button>
+    </div>
+  </div>
+
+  <script>
+    const v = document.getElementById('v');
+    const btn = document.getElementById('startBtn');
+    const overlay = document.getElementById('overlay');
+
+    // keine sichtbaren Controls
+    v.controls = false;
+
+    btn.addEventListener('click', async () => {
+      try {
+        await v.play();
+        overlay.style.display = 'none'; // Start-Button verschwindet
+      } catch (e) {
+        alert("Autoplay blockiert – bitte nochmal Start drücken.");
+      }
+    });
+
+    // Erschweren: Space/K, Pfeiltasten etc.
+    window.addEventListener('keydown', (e) => {
+      const blocked = [" ", "k", "K", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+      if (blocked.includes(e.key)) e.preventDefault();
+    }, { passive:false });
+
+    // Wenn jemand pausiert (z.B. per Tastatur/Click), direkt wieder abspielen
+    v.addEventListener('pause', () => {
+      // nur wenn Video schon gestartet wurde
+      if (overlay.style.display === 'none' && !v.ended) v.play().catch(()=>{});
+    });
+
+    // Playbackrate fixieren
+    v.playbackRate = 1.0;
+    v.addEventListener('ratechange', () => {
+      if (v.playbackRate !== 1.0) v.playbackRate = 1.0;
+    });
+  </script>
+</body>
+</html>
